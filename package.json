@@ -1,0 +1,25 @@
+{
+  "name": "webforge",
+  "version": "1.0.0",
+  "description": "WebForge - 実践型Web制作オンラインスクール",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'"
+  },
+  "keywords": [
+    "web",
+    "school",
+    "stripe",
+    "payment"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
+

@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+ENV_SETUP.md
+NETLIFY_SETUP.md
+README_NETLIFY.md
+NETLIFY_ENV_GUIDE.md
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Netlify
+.netlify/
+.netlify/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+

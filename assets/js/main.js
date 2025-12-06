@@ -1,7 +1,109 @@
 // --- Stripe 初期化 ---
-// Note: テスト用公開鍵
-const stripe = Stripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
+// 本番環境用公開鍵
+const stripe = Stripe('pk_live_51Sb0h9RqJVOTVojFVw8l2xY950buv1KYy7uCGnuEq27JhsLTdxSSSmDB57dKprjn3ONztAu32X7aD6lM9CRHoDX9000LGLnCVS');
 const elements = stripe.elements();
+
+// --- セキュリティ対策: 試行回数制限の管理 ---
+const SECURITY_CONFIG = {
+    MAX_ATTEMPTS_PER_EMAIL: 5,        // 同一メールアドレスからの最大試行回数
+    MAX_ATTEMPTS_PER_SESSION: 10,     // セッションあたりの最大試行回数
+    LOCKOUT_DURATION: 60 * 60 * 1000, // ロックアウト時間（1時間）
+    RESET_WINDOW: 24 * 60 * 60 * 1000 // リセットウィンドウ（24時間）
+};
+
+// ローカルストレージから試行回数を取得
+function getAttemptData() {
+    const stored = localStorage.getItem('stripe_attempts');
+    if (!stored) return { emailAttempts: {}, sessionAttempts: 0, lastReset: Date.now() };
+    
+    try {
+        const data = JSON.parse(stored);
+        // 24時間経過したらリセット
+        if (Date.now() - data.lastReset > SECURITY_CONFIG.RESET_WINDOW) {
+            return { emailAttempts: {}, sessionAttempts: 0, lastReset: Date.now() };
+        }
+        return data;
+    } catch {
+        return { emailAttempts: {}, sessionAttempts: 0, lastReset: Date.now() };
+    }
+}
+
+// 試行回数を保存
+function saveAttemptData(data) {
+    localStorage.setItem('stripe_attempts', JSON.stringify(data));
+}
+
+// 試行回数をチェック
+function checkAttemptLimit(email) {
+    const data = getAttemptData();
+    const emailLower = email ? email.toLowerCase().trim() : '';
+    
+    // セッション全体の試行回数チェック
+    if (data.sessionAttempts >= SECURITY_CONFIG.MAX_ATTEMPTS_PER_SESSION) {
+        return {
+            allowed: false,
+            message: 'セキュリティのため、しばらく時間をおいてから再度お試しください。'
+        };
+    }
+    
+    // 同一メールアドレスからの試行回数チェック
+    if (emailLower && data.emailAttempts[emailLower]) {
+        const emailData = data.emailAttempts[emailLower];
+        
+        // ロックアウト中かチェック
+        if (emailData.lockedUntil && Date.now() < emailData.lockedUntil) {
+            const minutesLeft = Math.ceil((emailData.lockedUntil - Date.now()) / (60 * 1000));
+            return {
+                allowed: false,
+                message: `セキュリティのため、${minutesLeft}分後に再度お試しください。`
+            };
+        }
+        
+        // ロックアウト期間が過ぎていたらリセット
+        if (emailData.lockedUntil && Date.now() >= emailData.lockedUntil) {
+            emailData.count = 0;
+            emailData.lockedUntil = null;
+        }
+        
+        // 試行回数が上限に達したらロックアウト
+        if (emailData.count >= SECURITY_CONFIG.MAX_ATTEMPTS_PER_EMAIL) {
+            emailData.lockedUntil = Date.now() + SECURITY_CONFIG.LOCKOUT_DURATION;
+            saveAttemptData(data);
+            return {
+                allowed: false,
+                message: 'セキュリティのため、1時間後に再度お試しください。'
+            };
+        }
+    }
+    
+    return { allowed: true };
+}
+
+// 試行回数を記録
+function recordAttempt(email, success = false) {
+    const data = getAttemptData();
+    const emailLower = email ? email.toLowerCase().trim() : '';
+    
+    // 成功した場合は試行回数をリセット
+    if (success) {
+        if (emailLower && data.emailAttempts[emailLower]) {
+            delete data.emailAttempts[emailLower];
+        }
+        data.sessionAttempts = 0;
+    } else {
+        // 失敗した場合は試行回数を増やす
+        data.sessionAttempts++;
+        
+        if (emailLower) {
+            if (!data.emailAttempts[emailLower]) {
+                data.emailAttempts[emailLower] = { count: 0 };
+            }
+            data.emailAttempts[emailLower].count++;
+        }
+    }
+    
+    saveAttemptData(data);
+}
 
 // Stripe Elements のスタイル設定
 const style = {
@@ -26,7 +128,8 @@ card.mount('#card-element');
 card.addEventListener('change', function(event) {
     const displayError = document.getElementById('card-errors');
     if (event.error) {
-        displayError.textContent = event.error.message;
+        // セキュリティ対策: エラー内容を非表示にして汎用的なメッセージを表示
+        displayError.textContent = 'カード情報に問題があります。内容をご確認ください。';
     } else {
         displayError.textContent = '';
     }
@@ -148,6 +251,9 @@ function openModal() {
     });
     document.body.style.overflow = 'hidden';
     isModalOpen = true;
+    
+    // モーダルを開いたときにエラーメッセージをクリア
+    document.getElementById('card-errors').textContent = '';
 }
 
 function closeModal() {
@@ -175,18 +281,83 @@ form.addEventListener('submit', function(event) {
     }
 });
 
-// カード決済ハンドラ
-function handleCardPayment() {
+// カード決済ハンドラ（Netlify Functions経由）
+async function handleCardPayment() {
+    const email = document.getElementById('email').value;
+    const name = document.getElementById('name').value;
+    
+    // セキュリティチェック: 試行回数制限（フロントエンド側）
+    const limitCheck = checkAttemptLimit(email);
+    if (!limitCheck.allowed) {
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = limitCheck.message;
+        return;
+    }
+    
     setLoading(true, 'card');
-    stripe.createToken(card).then(function(result) {
-        if (result.error) {
+    
+    // エラーメッセージをクリア
+    document.getElementById('card-errors').textContent = '';
+    
+    try {
+        // Netlify Function経由でPaymentIntentを作成
+        const response = await fetch('/.netlify/functions/create-payment-intent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                amount: 49800, // ¥49,800
+                currency: 'jpy',
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            // サーバー側のエラー（レート制限など）
             const errorElement = document.getElementById('card-errors');
-            errorElement.textContent = result.error.message;
+            errorElement.textContent = data.message || '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+            
+            recordAttempt(email, false);
+            setLoading(false, 'card');
+            return;
+        }
+
+        // PaymentIntentが作成されたら、Stripeで確認を完了
+        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret, {
+            payment_method: {
+                card: card,
+                billing_details: {
+                    name: name,
+                    email: email,
+                },
+            },
+        });
+
+        if (confirmError) {
+            // セキュリティ対策: エラー内容を非表示にして汎用的なメッセージを表示
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = 'カード情報に問題があります。内容をご確認ください。';
+            
+            recordAttempt(email, false);
             setLoading(false, 'card');
         } else {
-            stripeTokenHandler(result.token);
+            // 成功した場合は試行回数をリセット
+            recordAttempt(email, true);
+            stripeTokenHandler({ id: data.id });
         }
-    });
+
+    } catch (error) {
+        console.error('Payment error:', error);
+        // 予期しないエラーの場合も汎用的なメッセージを表示
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+        
+        recordAttempt(email, false);
+        setLoading(false, 'card');
+    }
 }
 
 // PayPay決済ハンドラ (シミュレーション)
@@ -218,8 +389,8 @@ function handlePayPayPayment() {
     }, 2000);
 }
 
-function stripeTokenHandler(token) {
-    console.log('Received Stripe token:', token.id);
+function stripeTokenHandler(paymentIntent) {
+    console.log('Payment Intent confirmed:', paymentIntent.id);
     setTimeout(() => {
         setLoading(false, 'card');
         const btn = document.getElementById('submitBtnCard');
@@ -230,7 +401,7 @@ function stripeTokenHandler(token) {
         btn.classList.add('bg-green-500', 'hover:bg-green-600');
 
         setTimeout(() => {
-            alert('【テスト決済成功】\n※実際の請求は発生しません。\n\nトークンが作成されました。\nご登録ありがとうございます。');
+            alert('【決済処理が完了しました】\n\nご登録ありがとうございます。\n確認メールをお送りいたします。');
             closeModal();
             card.clear();
             document.getElementById('name').value = '';
