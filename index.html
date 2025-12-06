@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebForge | 実践型Web制作オンラインスクール</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<!-- Custom CSS -->
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="text-slate-800 bg-white">
+
+<!-- ヘッダー -->
+<header class="fixed w-full z-50 bg-white/90 backdrop-blur-md shadow-sm transition-all duration-300">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<div class="flex-shrink-0 flex items-center">
+<span class="text-2xl font-black text-blue-600 tracking-tighter">WebForge</span>
+</div>
+<nav class="hidden md:flex space-x-8">
+<a href="#strength" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition">強み</a>
+<a href="#curriculum" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition">カリキュラム</a>
+<a href="#pricing" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition">料金</a>
+<a href="#faq" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition">Q&A</a>
+</nav>
+<div>
+<a href="#pricing" class="bg-blue-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl transition transform hover:-translate-y-0.5">
+受講を申し込む
+</a>
+</div>
+</div>
+</div>
+</header>
+
+<!-- メインビジュアル -->
+<section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-gradient-hero overflow-hidden">
+<div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-duration: 10s;"></div>
+<div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse animation-delay-2000" style="animation-duration: 12s;"></div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+<div class="text-center lg:text-left lg:flex lg:items-center lg:justify-between">
+<div class="lg:w-1/2">
+<div class="scroll-trigger" data-animation="animate-fade-up">
+<span class="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-4 tracking-wider">
+最短3ヶ月でプロへ
+</span>
+</div>
+<h1 class="text-4xl tracking-tight font-black text-slate-900 sm:text-5xl md:text-6xl mb-6 leading-tight">
+<span class="block scroll-trigger" data-animation="animate-text-reveal" style="animation-delay: 0.2s;">未経験から</span>
+<span class="block text-gradient scroll-trigger" data-animation="animate-text-reveal" style="animation-delay: 0.4s;">Web制作のプロになる</span>
+</h1>
+<p class="mt-4 text-lg text-slate-600 mb-8 max-w-lg mx-auto lg:mx-0 scroll-trigger" data-animation="animate-fade-up" style="animation-delay: 0.6s;">
+実践的なカリキュラムと現役エンジニアによる徹底サポート。<br>
+場所を選ばず、あなたのペースで一生モノのスキルを。
+</p>
+<div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 scroll-trigger" data-animation="animate-fade-up" style="animation-delay: 0.8s;">
+<a href="#pricing" class="px-8 py-4 border border-transparent text-base font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-700 md:text-lg shadow-lg hover:shadow-blue-500/30 transition transform hover:-translate-y-1">
+今すぐ始める
+</a>
+<a href="#curriculum" class="px-8 py-4 border border-slate-300 text-base font-bold rounded-lg text-slate-700 bg-white hover:bg-slate-50 md:text-lg transition">
+カリキュラムを見る
+</a>
+</div>
+</div>
+<div class="lg:w-1/2 mt-12 lg:mt-0 relative scroll-trigger" data-animation="animate-blur" style="animation-delay: 0.4s;">
+<div class="relative rounded-2xl shadow-2xl overflow-hidden border-4 border-white transform rotate-2 hover:rotate-0 transition duration-700 ease-in-out hover:scale-105">
+<img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Coding on laptop" class="w-full object-cover">
+<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+<div class="absolute bottom-6 left-6 text-white">
+<div class="font-bold text-xl">実践重視の学習環境</div>
+<div class="text-sm opacity-90">Review & Feedback</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 強み (Strength) -->
+<section id="strength" class="py-20 bg-white">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16 scroll-trigger" data-animation="animate-fade-up">
+<h2 class="text-blue-600 font-bold tracking-wide uppercase text-sm mb-2">Why WebForge?</h2>
+<h3 class="text-3xl md:text-4xl font-black text-slate-900">選ばれる3つの理由</h3>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<!-- Reason 1 -->
+<div class="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition scroll-trigger hover:-translate-y-2 duration-300" data-animation="animate-fade-up">
+<div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner">
+<i class="fa-solid fa-laptop-code"></i>
+</div>
+<h4 class="text-xl font-bold text-slate-900 mb-3">実践的なカリキュラム</h4>
+<p class="text-slate-600 leading-relaxed">
+教科書的な学習だけでなく、実際の実務案件を想定した課題に取り組みます。デザインカンプからのコーディングスキルを確実に習得。
+</p>
+</div>
+
+<!-- Reason 2 -->
+<div class="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition scroll-trigger hover:-translate-y-2 duration-300" data-animation="animate-fade-up" style="animation-delay: 0.2s;">
+<div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner">
+<i class="fa-solid fa-chalkboard-user"></i>
+</div>
+<h4 class="text-xl font-bold text-slate-900 mb-3">プロによるコードレビュー</h4>
+<p class="text-slate-600 leading-relaxed">
+現役エンジニアがあなたのコードを一行一行チェック。「動けばいい」ではなく「保守しやすい美しいコード」を指導します。
+</p>
+</div>
+
+<!-- Reason 3 -->
+<div class="bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition scroll-trigger hover:-translate-y-2 duration-300" data-animation="animate-fade-up" style="animation-delay: 0.4s;">
+<div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner">
+<i class="fa-solid fa-briefcase"></i>
+</div>
+<h4 class="text-xl font-bold text-slate-900 mb-3">卒業後のキャリア支援</h4>
+<p class="text-slate-600 leading-relaxed">
+ポートフォリオ作成サポートから、案件獲得の方法、転職活動の面接対策まで徹底的にバックアップします。
+</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- カリキュラム -->
+<section id="curriculum" class="py-20 bg-slate-900 text-white overflow-hidden">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16 scroll-trigger" data-animation="animate-blur">
+<h2 class="text-blue-400 font-bold tracking-wide uppercase text-sm mb-2">Curriculum</h2>
+<h3 class="text-3xl md:text-4xl font-black">学習ロードマップ</h3>
+</div>
+
+<div class="space-y-12 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700 before:to-transparent">
+
+<!-- Step 1 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active scroll-trigger" data-animation="animate-slide-left">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-900 group-hover:bg-blue-600 group-hover:border-blue-600 transition duration-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(59,130,246,0.5)] z-10 group-hover:scale-110">
+<span class="font-bold text-sm">01</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg md:order-1 transition duration-500 group-hover:border-blue-500 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+<h4 class="text-xl font-bold text-blue-400 mb-2">HTML/CSS基礎 & サイト模写</h4>
+<p class="text-slate-400 text-sm">Webページの構造と装飾の基礎を学びます。既存の有名サイトを模写コーディングし、レイアウト構築力を養います。</p>
+</div>
+</div>
+
+<!-- Step 2 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group scroll-trigger" data-animation="animate-slide-right">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-900 group-hover:bg-purple-600 group-hover:border-purple-600 transition duration-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(168,85,247,0.5)] z-10 group-hover:scale-110">
+<span class="font-bold text-sm">02</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg md:order-1 transition duration-500 group-hover:border-purple-500 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+<h4 class="text-xl font-bold text-purple-400 mb-2">JavaScript & アニメーション</h4>
+<p class="text-slate-400 text-sm">サイトに動きをつけるプログラミングを学習。メニューの開閉やスライダーの実装など、動的なUIを作成します。</p>
+</div>
+</div>
+
+<!-- Step 3 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group scroll-trigger" data-animation="animate-slide-left">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-900 group-hover:bg-green-600 group-hover:border-green-600 transition duration-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(34,197,94,0.5)] z-10 group-hover:scale-110">
+<span class="font-bold text-sm">03</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg md:order-1 transition duration-500 group-hover:border-green-500 group-hover:shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+<h4 class="text-xl font-bold text-green-400 mb-2">WordPress & CMS構築</h4>
+<p class="text-slate-400 text-sm">世界のWebサイトの40%以上を占めるWordPressのオリジナルテーマ作成を習得。案件単価の高いスキルです。</p>
+</div>
+</div>
+
+<!-- Step 4 -->
+<div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group scroll-trigger" data-animation="animate-slide-right">
+<div class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-900 group-hover:bg-orange-500 group-hover:border-orange-500 transition duration-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_20px_rgba(249,115,22,0.5)] z-10 group-hover:scale-110">
+<span class="font-bold text-sm">04</span>
+</div>
+<div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg md:order-1 transition duration-500 group-hover:border-orange-500 group-hover:shadow-[0_0_30px_rgba(249,115,22,0.3)]">
+<h4 class="text-xl font-bold text-orange-400 mb-2">卒業制作 & ポートフォリオ</h4>
+<p class="text-slate-400 text-sm">オリジナルのWebサイトを企画・制作・公開。就職活動や案件獲得のための強力なポートフォリオを完成させます。</p>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- 料金 (Pricing) -->
+<section id="pricing" class="py-20 bg-blue-50">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-12 scroll-trigger" data-animation="animate-fade-up">
+<h2 class="text-blue-600 font-bold tracking-wide uppercase text-sm mb-2">Price</h2>
+<h3 class="text-3xl md:text-4xl font-black text-slate-900">料金プラン</h3>
+<p class="mt-4 text-slate-600">追加料金なし。全てのコンテンツが無制限にアクセス可能です。</p>
+</div>
+
+<div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-blue-100 scroll-trigger hover:shadow-[0_20px_50px_rgba(59,130,246,0.2)] transition duration-500" data-animation="animate-blur">
+<div class="p-2 bg-red-500 text-white text-center font-bold tracking-wider text-sm animate-pulse">
+期間限定キャンペーン実施中！
+</div>
+<div class="p-10 md:p-16 text-center">
+<h4 class="text-2xl font-bold text-slate-800 mb-2">Web制作マスターコース</h4>
+<p class="text-slate-500 mb-8">期間無制限・メンターサポート付き</p>
+
+<div class="flex flex-col items-center justify-center mb-8">
+<div class="text-slate-400 text-xl font-bold line-through decoration-2 decoration-red-400">
+¥99,800
+</div>
+<div class="flex items-baseline text-red-600">
+<span class="text-3xl font-bold mr-2">¥</span>
+<span class="text-6xl md:text-7xl font-black tracking-tighter">49,800</span>
+<span class="text-xl font-bold text-slate-600 ml-2">（税込）</span>
+</div>
+</div>
+
+<div class="flex justify-center mb-10">
+<ul class="text-left space-y-3">
+<li class="flex items-center text-slate-700">
+<i class="fa-solid fa-check text-green-500 mr-3"></i> 100本以上の動画教材が見放題
+</li>
+<li class="flex items-center text-slate-700">
+<i class="fa-solid fa-check text-green-500 mr-3"></i> チャットでの質問し放題
+</li>
+<li class="flex items-center text-slate-700">
+<i class="fa-solid fa-check text-green-500 mr-3"></i> 週1回のオンラインメンタリング
+</li>
+<li class="flex items-center text-slate-700">
+<i class="fa-solid fa-check text-green-500 mr-3"></i> 案件紹介・キャリアサポート
+</li>
+</ul>
+</div>
+
+<button onclick="openModal()" class="w-full md:w-auto px-12 py-5 bg-red-600 text-white rounded-xl font-bold text-xl shadow-lg shadow-red-500/30 hover:bg-red-700 hover:shadow-red-500/50 transition transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden group">
+<span class="relative z-10 flex items-center justify-center">
+今すぐ申し込む
+<i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+</span>
+<div class="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+</button>
+<p class="mt-4 text-xs text-slate-400">※クレジットカード決済に対応しています。</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Q&A -->
+<section id="faq" class="py-20 bg-white">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16 scroll-trigger" data-animation="animate-fade-up">
+<h2 class="text-blue-600 font-bold tracking-wide uppercase text-sm mb-2">Q&A</h2>
+<h3 class="text-3xl md:text-4xl font-black text-slate-900">よくある質問</h3>
+</div>
+
+<div class="space-y-6">
+<!-- QA 1 -->
+<div class="border-b border-slate-200 pb-6 scroll-trigger" data-animation="animate-fade-up">
+<h4 class="text-lg font-bold text-slate-900 mb-2 flex items-start">
+<span class="text-blue-600 mr-3">Q.</span>
+全くの初心者ですが大丈夫ですか？
+</h4>
+<p class="text-slate-600 pl-8 leading-relaxed">
+A. はい、大丈夫です。受講生の8割以上が未経験からスタートしています。パソコンの基本操作から丁寧に解説しています。
+</p>
+</div>
+<!-- QA 2 -->
+<div class="border-b border-slate-200 pb-6 scroll-trigger" data-animation="animate-fade-up">
+<h4 class="text-lg font-bold text-slate-900 mb-2 flex items-start">
+<span class="text-blue-600 mr-3">Q.</span>
+働きながらでも学習できますか？
+</h4>
+<p class="text-slate-600 pl-8 leading-relaxed">
+A. 可能です。全ての教材はオンラインで24時間アクセス可能なため、通勤時間や休日などご自身のペースで学習を進められます。
+</p>
+</div>
+<!-- QA 3 -->
+<div class="border-b border-slate-200 pb-6 scroll-trigger" data-animation="animate-fade-up">
+<h4 class="text-lg font-bold text-slate-900 mb-2 flex items-start">
+<span class="text-blue-600 mr-3">Q.</span>
+追加費用はかかりますか？
+</h4>
+<p class="text-slate-600 pl-8 leading-relaxed">
+A. 受講料以外の追加費用は一切かかりません。ただし、学習に使用するPCや、サーバー・ドメイン契約の実費（月額1,000円程度）はご自身での負担となります。
+</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- 決済ボタン (Floating / Bottom CTA) -->
+<section class="py-20 bg-slate-50 border-t border-slate-200 text-center">
+<div class="max-w-4xl mx-auto px-4">
+<h3 class="text-2xl font-bold text-slate-900 mb-6 scroll-trigger" data-animation="animate-fade-up">
+新しいキャリアを、ここから始めよう。
+</h3>
+<button onclick="openModal()" class="scroll-trigger px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold text-xl shadow-xl hover:shadow-2xl hover:brightness-110 transition transform hover:-translate-y-1 hover:scale-105" data-animation="animate-blur">
+特別価格で受講する
+</button>
+</div>
+</section>
+
+<!-- フッター -->
+<footer class="bg-slate-900 text-slate-400 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<div class="mb-4 text-2xl font-black text-white tracking-tighter">WebForge</div>
+<div class="flex justify-center space-x-6 mb-8 text-sm">
+<a href="#" class="hover:text-white transition">運営会社</a>
+<a href="#" class="hover:text-white transition">プライバシーポリシー</a>
+<a href="#" class="hover:text-white transition">特定商取引法に基づく表記</a>
+</div>
+<p class="text-xs">&copy; 2023 WebForge School. All Rights Reserved.</p>
+</div>
+</footer>
+
+<!-- 決済モーダル (Credit Card & PayPay) -->
+<div id="paymentModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<!-- 背景オーバーレイ -->
+<div class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm transition-opacity opacity-0 transition-all duration-300" id="modalOverlay"></div>
+
+<div class="fixed inset-0 z-10 overflow-y-auto">
+<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+<!-- モーダルパネル -->
+<div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 transition-all duration-500 ease-out" id="modalPanel">
+
+<div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+<div class="sm:flex sm:items-start">
+<div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-xl font-bold leading-6 text-slate-900" id="modal-title">決済情報入力</h3>
+<button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition rotate-0 hover:rotate-90 duration-300">
+<i class="fa-solid fa-xmark text-xl"></i>
+</button>
+</div>
+
+<div class="bg-blue-50 p-4 rounded-lg mb-6 flex justify-between items-center">
+<span class="text-sm font-bold text-slate-700">Web制作マスターコース</span>
+<span class="text-lg font-black text-slate-900">¥49,800</span>
+</div>
+
+<!-- 決済方法選択タブ -->
+<div class="flex space-x-2 mb-6 border-b border-slate-200">
+<button type="button" onclick="switchTab('card')" id="tab-card" class="pb-3 px-4 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition hover:text-blue-800">
+<i class="fa-regular fa-credit-card mr-2"></i>クレジットカード
+</button>
+<button type="button" onclick="switchTab('paypay')" id="tab-paypay" class="pb-3 px-4 text-sm font-bold border-b-2 border-transparent text-slate-500 transition hover:text-slate-700 hover:border-slate-300">
+<i class="fa-solid fa-qrcode mr-2"></i>PayPay
+</button>
+</div>
+
+<!-- 決済フォーム -->
+<form id="paymentForm" class="space-y-4">
+<!-- 共通フィールド -->
+<div id="common-fields">
+<div class="mb-4">
+<label for="name" class="block text-sm font-medium text-slate-700 mb-1">お名前</label>
+<input type="text" id="name" required class="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="山田 太郎">
+</div>
+
+<div class="mb-4">
+<label for="email" class="block text-sm font-medium text-slate-700 mb-1">メールアドレス</label>
+<input type="email" id="email" required class="w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2" placeholder="taro.yamada@example.com">
+</div>
+</div>
+
+<!-- Credit Card Only Fields -->
+<div id="card-fields" class="block">
+<div>
+<label for="card-element" class="block text-sm font-medium text-slate-700 mb-1">クレジットカード情報</label>
+<div id="card-element" class="StripeElement"></div>
+<div id="card-errors" class="mt-2 text-sm text-red-600" role="alert"></div>
+</div>
+<div class="mt-6">
+<button type="submit" id="submitBtnCard" class="w-full inline-flex justify-center rounded-lg bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]">
+<span id="btnTextCard">¥49,800 を支払う</span>
+<span id="btnSpinnerCard" class="hidden ml-2"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+</button>
+</div>
+<p class="text-xs text-center text-slate-500 mt-4">
+<i class="fa-solid fa-lock mr-1"></i>
+Stripeにより安全に決済されます。
+</p>
+</div>
+
+<!-- PayPay Only Fields -->
+<div id="paypay-fields" class="hidden text-center py-4">
+<div class="mb-6 flex justify-center">
+<div class="bg-red-50 p-6 rounded-xl border border-red-100 w-full max-w-xs">
+<div class="text-4xl text-red-600 mb-3"><i class="fa-solid fa-qrcode"></i></div>
+<h4 class="font-bold text-slate-800 mb-1">PayPayで支払う</h4>
+<p class="text-xs text-slate-500">
+ボタンを押すとPayPayアプリが起動するか、<br>
+ログイン画面に移動します。
+</p>
+</div>
+</div>
+<div class="mt-2">
+<button type="button" onclick="handlePayPayPayment()" id="submitBtnPayPay" class="w-full inline-flex justify-center items-center rounded-lg bg-[#FF0033] px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#D9002B] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 transition disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]">
+<span id="btnTextPayPay">PayPayで支払う</span>
+<span id="btnSpinnerPayPay" class="hidden ml-2"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+</button>
+</div>
+<p class="text-xs text-center text-slate-500 mt-4">
+<i class="fa-solid fa-shield-halved mr-1"></i>
+決済情報はPayPay株式会社に暗号化して送信されます。
+</p>
+</div>
+
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Custom JavaScript -->
+<script src="assets/js/main.js"></script>
+</body>
+</html>
