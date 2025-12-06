@@ -1,6 +1,7 @@
 body {
     font-family: 'Noto Sans JP', sans-serif;
     overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 /* --- 高度なアニメーション定義 --- */

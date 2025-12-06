@@ -66,6 +66,40 @@ function switchTab(method) {
 }
 
 
+// --- スムーススクロール制御 ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 固定ヘッダーの高さを取得（h-16 = 64px）
+    const headerHeight = 64;
+    
+    // アンカーリンクをクリックしたときの処理
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            
+            // 空のアンカー（#のみ）やJavaScriptリンクは除外
+            if (href === '#' || href === '') {
+                return;
+            }
+            
+            const targetId = href.substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                e.preventDefault();
+                
+                // ターゲット要素の位置を取得し、ヘッダーの高さ分を引く
+                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                
+                // スムーススクロール
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+});
+
 // --- アニメーション制御 ---
 document.addEventListener('DOMContentLoaded', () => {
     const triggers = document.querySelectorAll('.scroll-trigger');
