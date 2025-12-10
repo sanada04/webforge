@@ -1,7 +1,22 @@
 // --- Stripe 初期化 ---
-// 本番環境用公開鍵
-const stripe = Stripe('pk_live_51Sb0h9RqJVOTVojFVw8l2xY950buv1KYy7uCGnuEq27JhsLTdxSSSmDB57dKprjn3ONztAu32X7aD6lM9CRHoDX9000LGLnCVS');
+// 環境判定: localhost または netlify.app の場合はテスト環境、それ以外は本番環境
+const isDevelopment = window.location.hostname === 'localhost' || 
+                      window.location.hostname.includes('netlify.app') ||
+                      window.location.hostname.includes('127.0.0.1');
+
+// 公開鍵の設定（テスト環境と本番環境で切り替え）
+const STRIPE_PUBLISHABLE_KEY = isDevelopment 
+    ? 'pk_test_51Sb0h9RqJVOTVojFVw8l2xY950buv1KYy7uCGnuEq27JhsLTdxSSSmDB57dKprjn3ONztAu32X7aD6lM9CRHoDX9000LGLnCVS' // テスト環境用
+    : 'pk_live_51Sb0h9RqJVOTVojFVw8l2xY950buv1KYy7uCGnuEq27JhsLTdxSSSmDB57dKprjn3ONztAu32X7aD6lM9CRHoDX9000LGLnCVS'; // 本番環境用
+
+const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
 const elements = stripe.elements();
+
+// デバッグ用: 環境情報をコンソールに出力（本番環境では削除推奨）
+if (isDevelopment) {
+    console.log('🔧 Stripe環境:', isDevelopment ? 'テスト環境' : '本番環境');
+    console.log('🔑 使用中の公開鍵:', STRIPE_PUBLISHABLE_KEY.substring(0, 20) + '...');
+}
 
 // --- セキュリティ対策: 試行回数制限の管理 ---
 const SECURITY_CONFIG = {
@@ -254,6 +269,16 @@ function openModal() {
     
     // モーダルを開いたときにエラーメッセージをクリア
     document.getElementById('card-errors').textContent = '';
+    
+    // テスト環境の場合はヘルパー情報を表示
+    const testModeInfo = document.getElementById('test-mode-info');
+    if (testModeInfo) {
+        if (isDevelopment) {
+            testModeInfo.classList.remove('hidden');
+        } else {
+            testModeInfo.classList.add('hidden');
+        }
+    }
 }
 
 function closeModal() {
@@ -281,10 +306,25 @@ form.addEventListener('submit', function(event) {
     }
 });
 
-// カード決済ハンドラ（Netlify Functions経由）
+// カード決済ハンドラ（Vercel Functions経由）
 async function handleCardPayment() {
-    const email = document.getElementById('email').value;
-    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value.trim();
+    const name = document.getElementById('name').value.trim();
+    
+    // バリデーション
+    if (!email || !name) {
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = 'お名前とメールアドレスを入力してください。';
+        return;
+    }
+    
+    // メールアドレスの形式チェック
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        const errorElement = document.getElementById('card-errors');
+        errorElement.textContent = '有効なメールアドレスを入力してください。';
+        return;
+    }
     
     // セキュリティチェック: 試行回数制限（フロントエンド側）
     const limitCheck = checkAttemptLimit(email);
@@ -300,8 +340,8 @@ async function handleCardPayment() {
     document.getElementById('card-errors').textContent = '';
     
     try {
-        // Netlify Function経由でPaymentIntentを作成
-        const response = await fetch('/.netlify/functions/create-payment-intent', {
+        // Vercel Function経由でPaymentIntentを作成
+        const response = await fetch('/api/create-payment-intent', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -313,12 +353,36 @@ async function handleCardPayment() {
             }),
         });
 
+        // レスポンスの解析前にステータスをチェック
+        if (!response.ok) {
+            let errorMessage = '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+            
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch (e) {
+                // JSON解析に失敗した場合、ステータスコードから判断
+                if (response.status === 429) {
+                    errorMessage = 'リクエストが多すぎます。しばらく時間をおいてから再度お試しください。';
+                } else if (response.status === 500) {
+                    errorMessage = 'サーバーエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+                }
+            }
+            
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = errorMessage;
+            
+            recordAttempt(email, false);
+            setLoading(false, 'card');
+            return;
+        }
+
         const data = await response.json();
 
-        if (!response.ok) {
-            // サーバー側のエラー（レート制限など）
+        // clientSecretの存在確認
+        if (!data.clientSecret) {
             const errorElement = document.getElementById('card-errors');
-            errorElement.textContent = data.message || '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+            errorElement.textContent = '決済情報の取得に失敗しました。再度お試しください。';
             
             recordAttempt(email, false);
             setLoading(false, 'card');
@@ -326,7 +390,7 @@ async function handleCardPayment() {
         }
 
         // PaymentIntentが作成されたら、Stripeで確認を完了
-        const { error: confirmError } = await stripe.confirmCardPayment(data.clientSecret, {
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
             payment_method: {
                 card: card,
                 billing_details: {
@@ -337,23 +401,64 @@ async function handleCardPayment() {
         });
 
         if (confirmError) {
-            // セキュリティ対策: エラー内容を非表示にして汎用的なメッセージを表示
+            // エラーの種類に応じたメッセージを表示
+            let errorMessage = 'カード情報に問題があります。内容をご確認ください。';
+            
+            // 開発環境では詳細なエラー情報を表示
+            if (isDevelopment) {
+                console.error('Stripe決済エラー:', confirmError);
+                // ユーザーフレンドリーなエラーメッセージに変換
+                if (confirmError.type === 'card_error') {
+                    switch (confirmError.code) {
+                        case 'card_declined':
+                            errorMessage = 'カードが拒否されました。カード情報をご確認いただくか、別のカードをお試しください。';
+                            break;
+                        case 'insufficient_funds':
+                            errorMessage = 'カードの残高が不足しています。';
+                            break;
+                        case 'expired_card':
+                            errorMessage = 'カードの有効期限が切れています。';
+                            break;
+                        case 'incorrect_cvc':
+                            errorMessage = 'CVCコードが正しくありません。';
+                            break;
+                        case 'incorrect_number':
+                            errorMessage = 'カード番号が正しくありません。';
+                            break;
+                        default:
+                            errorMessage = confirmError.message || errorMessage;
+                    }
+                }
+            }
+            
             const errorElement = document.getElementById('card-errors');
-            errorElement.textContent = 'カード情報に問題があります。内容をご確認ください。';
+            errorElement.textContent = errorMessage;
             
             recordAttempt(email, false);
             setLoading(false, 'card');
         } else {
+            // 決済成功
+            if (isDevelopment) {
+                console.log('✅ 決済成功:', paymentIntent);
+            }
+            
             // 成功した場合は試行回数をリセット
             recordAttempt(email, true);
-            stripeTokenHandler({ id: data.id });
+            stripeTokenHandler({ id: data.id, paymentIntent: paymentIntent });
         }
 
     } catch (error) {
         console.error('Payment error:', error);
-        // 予期しないエラーの場合も汎用的なメッセージを表示
+        
+        // ネットワークエラーなどの場合
+        let errorMessage = '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+        
+        if (error.message && error.message.includes('fetch')) {
+            errorMessage = 'ネットワークエラーが発生しました。インターネット接続をご確認ください。';
+        }
+        
         const errorElement = document.getElementById('card-errors');
-        errorElement.textContent = '処理中にエラーが発生しました。しばらく時間をおいてから再度お試しください。';
+        errorElement.textContent = errorMessage;
         
         recordAttempt(email, false);
         setLoading(false, 'card');
@@ -391,6 +496,8 @@ function handlePayPayPayment() {
 
 function stripeTokenHandler(paymentIntent) {
     console.log('Payment Intent confirmed:', paymentIntent.id);
+    
+    // 決済成功時の処理
     setTimeout(() => {
         setLoading(false, 'card');
         const btn = document.getElementById('submitBtnCard');
@@ -401,11 +508,21 @@ function stripeTokenHandler(paymentIntent) {
         btn.classList.add('bg-green-500', 'hover:bg-green-600');
 
         setTimeout(() => {
-            alert('【決済処理が完了しました】\n\nご登録ありがとうございます。\n確認メールをお送りいたします。');
+            // 成功メッセージを表示
+            const successMessage = isDevelopment 
+                ? `【決済処理が完了しました（テスト環境）】\n\nPayment Intent ID: ${paymentIntent.id}\n\nご登録ありがとうございます。\n確認メールをお送りいたします。`
+                : '【決済処理が完了しました】\n\nご登録ありがとうございます。\n確認メールをお送りいたします。';
+            
+            alert(successMessage);
+            
+            // フォームをリセット
             closeModal();
             card.clear();
             document.getElementById('name').value = '';
             document.getElementById('email').value = '';
+            
+            // 本番環境では、必要に応じてリダイレクトや確認ページへの遷移を追加
+            // window.location.href = '/payment-success?payment_intent=' + paymentIntent.id;
         }, 500);
     }, 1500);
 }

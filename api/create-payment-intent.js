@@ -1,14 +1,5 @@
-// Netlify Function: Stripe PaymentIntent作成（セキュリティ対策付き）
-// 環境変数からシークレットキーを取得
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-
-// シークレットキーの存在確認
-if (!STRIPE_SECRET_KEY) {
-    console.error('❌ STRIPE_SECRET_KEY が設定されていません');
-    console.error('Netlifyダッシュボードで環境変数を設定してください: https://app.netlify.com/sites/[your-site]/settings/env');
-}
-
-const stripe = require('stripe')(STRIPE_SECRET_KEY);
+// Vercel Function: Stripe PaymentIntent作成（セキュリティ対策付き）
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // 不審なIPアドレスの判定（簡易版）
 function isSuspiciousIP(ip) {
@@ -20,7 +11,7 @@ function isSuspiciousIP(ip) {
         /^199\.87\./,
     ];
     
-    // ローカルホストやNetlify内部IPは許可
+    // ローカルホストやVercel内部IPは許可
     if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('10.') || ip.startsWith('172.16.')) {
         return false;
     }
@@ -30,7 +21,7 @@ function isSuspiciousIP(ip) {
 }
 
 // レート制限チェック（簡易版 - 実際の運用ではRedisなどの外部ストレージを使用）
-// 注意: Netlify Functionsはステートレスなので、本番環境では外部ストレージが必要
+// 注意: Vercel Functionsはステートレスなので、本番環境では外部ストレージが必要
 const rateLimitStore = new Map();
 
 function checkRateLimit(identifier, maxAttempts = 5, windowMs = 60 * 60 * 1000) {
@@ -65,117 +56,73 @@ function checkRateLimit(identifier, maxAttempts = 5, windowMs = 60 * 60 * 1000) 
     };
 }
 
-exports.handler = async (event, context) => {
+module.exports = async (req, res) => {
     // CORS設定
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Content-Type': 'application/json',
-    };
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Content-Type', 'application/json');
 
     // OPTIONSリクエストの処理
-    if (event.httpMethod === 'OPTIONS') {
-        return {
-            statusCode: 200,
-            headers,
-            body: '',
-        };
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
     // POSTリクエストのみ許可
-    if (event.httpMethod !== 'POST') {
-        return {
-            statusCode: 405,
-            headers,
-            body: JSON.stringify({ error: 'Method not allowed' }),
-        };
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
         // シークレットキーの存在確認
-        if (!STRIPE_SECRET_KEY) {
+        if (!process.env.STRIPE_SECRET_KEY) {
             console.error('STRIPE_SECRET_KEY is not set');
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Server configuration error',
-                    message: '決済システムの設定に問題があります。管理者にお問い合わせください。'
-                }),
-            };
+            return res.status(500).json({ 
+                error: 'Server configuration error',
+                message: '決済システムの設定に問題があります。管理者にお問い合わせください。'
+            });
         }
 
-        // IPアドレスを取得
-        const clientIP = event.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-                        event.headers['x-nf-client-connection-ip'] || 
-                        event.requestContext?.identity?.sourceIp || 
+        // IPアドレスを取得（Vercel用）
+        const clientIP = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                        req.headers['x-vercel-forwarded-for']?.split(',')[0]?.trim() ||
+                        req.headers['x-real-ip'] ||
+                        req.connection?.remoteAddress ||
                         'unknown';
 
         // セキュリティチェック1: 不審なIPアドレスのチェック
         if (isSuspiciousIP(clientIP)) {
             console.warn(`Suspicious IP detected: ${clientIP}`);
             // 本番環境ではブロックするが、テスト環境では警告のみ
-            // return {
-            //     statusCode: 403,
-            //     headers,
-            //     body: JSON.stringify({ error: 'Access denied' }),
-            // };
+            // return res.status(403).json({ error: 'Access denied' });
         }
 
         // リクエストボディをパース
-        let requestBody;
-        try {
-            requestBody = JSON.parse(event.body || '{}');
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Invalid request format',
-                    message: 'リクエストの形式が正しくありません。'
-                }),
-            };
-        }
-
-        const { email, amount, currency = 'jpy' } = requestBody;
+        const { email, amount, currency = 'jpy' } = req.body;
 
         // バリデーション
         if (!email || !amount) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Invalid request',
-                    message: 'メールアドレスと金額が必要です。'
-                }),
-            };
+            return res.status(400).json({ 
+                error: 'Invalid request',
+                message: 'メールアドレスと金額が必要です。'
+            });
         }
 
         // メールアドレスの形式チェック
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Invalid email',
-                    message: '有効なメールアドレスを入力してください。'
-                }),
-            };
+            return res.status(400).json({ 
+                error: 'Invalid email',
+                message: '有効なメールアドレスを入力してください。'
+            });
         }
 
         // 金額のバリデーション
         if (typeof amount !== 'number' || amount <= 0 || amount > 10000000) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Invalid amount',
-                    message: '金額が無効です。'
-                }),
-            };
+            return res.status(400).json({ 
+                error: 'Invalid amount',
+                message: '金額が無効です。'
+            });
         }
 
         // セキュリティチェック2: レート制限
@@ -184,28 +131,20 @@ exports.handler = async (event, context) => {
         
         if (!rateLimit.allowed) {
             const resetMinutes = Math.ceil((rateLimit.resetAt - Date.now()) / (60 * 1000));
-            return {
-                statusCode: 429,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Too many requests',
-                    message: `セキュリティのため、${resetMinutes}分後に再度お試しください。`
-                }),
-            };
+            return res.status(429).json({ 
+                error: 'Too many requests',
+                message: `セキュリティのため、${resetMinutes}分後に再度お試しください。`
+            });
         }
 
         // IPアドレスベースのレート制限もチェック
         const ipRateLimit = checkRateLimit(`ip:${clientIP}`, 10, 60 * 60 * 1000); // 1時間に10回まで
         
         if (!ipRateLimit.allowed) {
-            return {
-                statusCode: 429,
-                headers,
-                body: JSON.stringify({ 
-                    error: 'Too many requests',
-                    message: 'セキュリティのため、しばらく時間をおいてから再度お試しください。'
-                }),
-            };
+            return res.status(429).json({ 
+                error: 'Too many requests',
+                message: 'セキュリティのため、しばらく時間をおいてから再度お試しください。'
+            });
         }
 
         // Stripe PaymentIntentを作成（EMV 3-D セキュアを有効化）
@@ -227,14 +166,10 @@ exports.handler = async (event, context) => {
 
         console.log('✅ PaymentIntent created:', paymentIntent.id);
 
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                clientSecret: paymentIntent.client_secret,
-                id: paymentIntent.id,
-            }),
-        };
+        return res.status(200).json({
+            clientSecret: paymentIntent.client_secret,
+            id: paymentIntent.id,
+        });
 
     } catch (error) {
         console.error('❌ Error creating payment intent:', error);
@@ -261,14 +196,10 @@ exports.handler = async (event, context) => {
             statusCode = 400;
         }
         
-        return {
-            statusCode: statusCode,
-            headers,
-            body: JSON.stringify({ 
-                error: 'Internal server error',
-                message: errorMessage
-            }),
-        };
+        return res.status(statusCode).json({ 
+            error: 'Internal server error',
+            message: errorMessage
+        });
     }
 };
 

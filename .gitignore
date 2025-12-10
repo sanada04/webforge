@@ -2,10 +2,9 @@
 node_modules/
 package-lock.json
 yarn.lock
-ENV_SETUP.md
-NETLIFY_SETUP.md
-README_NETLIFY.md
-NETLIFY_ENV_GUIDE.md
+STRIPE_SETUP.md
+VERCEL_SETUP.md
+VERCEL_NEW_PROJECT.md
 
 # Environment variables
 .env

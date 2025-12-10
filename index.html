@@ -380,6 +380,18 @@ A. 受講料以外の追加費用は一切かかりません。ただし、学�
 <i class="fa-solid fa-lock mr-1"></i>
 Stripeにより安全に決済されます。
 </p>
+<!-- テスト環境用のヘルパー情報 -->
+<div id="test-mode-info" class="hidden mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+<p class="font-bold text-yellow-800 mb-2">🧪 テストモード</p>
+<p class="text-yellow-700 mb-1">テスト用カード番号:</p>
+<ul class="list-disc list-inside text-yellow-700 space-y-1 ml-2">
+<li><code class="bg-yellow-100 px-1 rounded">4242 4242 4242 4242</code> - 成功</li>
+<li><code class="bg-yellow-100 px-1 rounded">4000 0000 0000 0002</code> - 拒否</li>
+<li><code class="bg-yellow-100 px-1 rounded">4000 0000 0000 9995</code> - 残高不足</li>
+</ul>
+<p class="text-yellow-700 mt-2">有効期限: 未来の日付（例: 12/25）</p>
+<p class="text-yellow-700">CVC: 任意の3桁（例: 123）</p>
+</div>
 </div>
 
 <!-- PayPay Only Fields -->
