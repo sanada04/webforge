@@ -349,7 +349,7 @@ async function handleCardPayment() {
             body: JSON.stringify({
                 email: email,
                 name: name,
-                amount: 49800, // ¥49,800
+                amount: 29800, // ¥29,800（先着5名様限定価格）※5名購入後は49800に変更してください
                 currency: 'jpy',
             }),
         });
@@ -532,7 +532,8 @@ function setLoading(isLoading, method) {
     const btn = method === 'card' ? document.getElementById('submitBtnCard') : document.getElementById('submitBtnPayPay');
     const btnText = method === 'card' ? document.getElementById('btnTextCard') : document.getElementById('btnTextPayPay');
     const btnSpinner = method === 'card' ? document.getElementById('btnSpinnerCard') : document.getElementById('btnSpinnerPayPay');
-    const defaultText = method === 'card' ? '¥49,800 を支払う' : 'PayPayで支払う';
+    // ボタンテキスト: 5名購入後は「¥49,800 を支払う」に変更してください
+    const defaultText = method === 'card' ? '¥29,800 を支払う' : 'PayPayで支払う';
 
     if (isLoading) {
         btn.disabled = true;
@@ -552,7 +553,8 @@ function resetForm() {
     const btnSpinnerCard = document.getElementById('btnSpinnerCard');
     
     btnCard.disabled = false;
-    btnTextCard.textContent = '¥49,800 を支払う';
+    // ボタンテキスト: 5名購入後は「¥49,800 を支払う」に変更してください
+    btnTextCard.textContent = '¥29,800 を支払う';
     btnSpinnerCard.classList.add('hidden');
     btnCard.classList.add('bg-blue-600', 'hover:bg-blue-700');
     btnCard.classList.remove('bg-green-500', 'hover:bg-green-600');
