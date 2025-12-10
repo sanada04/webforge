@@ -4,8 +4,8 @@
   "description": "WebForge - 実践型Web制作オンラインスクール",
   "main": "index.html",
   "scripts": {
-    "dev": "netlify dev",
-    "build": "echo 'No build step required'"
+    "dev": "vercel dev",
+    "build": ""
   },
   "keywords": [
     "web",
