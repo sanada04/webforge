@@ -98,7 +98,7 @@ module.exports = async (req, res) => {
         }
 
         // リクエストボディをパース
-        const { email, amount, currency = 'jpy' } = req.body;
+        const { email, name, amount, currency = 'jpy' } = req.body;
 
         // バリデーション
         if (!email || !amount) {
@@ -107,6 +107,9 @@ module.exports = async (req, res) => {
                 message: 'メールアドレスと金額が必要です。'
             });
         }
+
+        // 名前のバリデーション（オプション）
+        const customerName = name || email.split('@')[0]; // 名前がない場合はメールアドレスの@より前を使用
 
         // メールアドレスの形式チェック
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -147,12 +150,46 @@ module.exports = async (req, res) => {
             });
         }
 
+        // Stripe顧客を作成または取得
+        let customer;
+        try {
+            // 既存の顧客をメールアドレスで検索
+            const existingCustomers = await stripe.customers.list({
+                email: emailLower,
+                limit: 1,
+            });
+
+            if (existingCustomers.data.length > 0) {
+                // 既存の顧客を使用
+                customer = existingCustomers.data[0];
+                console.log('✅ Using existing customer:', customer.id);
+            } else {
+                // 新規顧客を作成
+                customer = await stripe.customers.create({
+                    email: emailLower,
+                    name: customerName,
+                    metadata: {
+                        created_via: 'webforge_payment',
+                        client_ip: clientIP,
+                        created_at: new Date().toISOString(),
+                    },
+                });
+                console.log('✅ New customer created:', customer.id);
+            }
+        } catch (customerError) {
+            console.error('❌ Error creating/finding customer:', customerError);
+            // 顧客作成に失敗しても決済は続行（オプション）
+            // 必要に応じてエラーを返すことも可能
+        }
+
         // Stripe PaymentIntentを作成（EMV 3-D セキュアを有効化）
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: currency,
+            customer: customer ? customer.id : undefined, // 顧客IDを紐付け
             metadata: {
                 email: emailLower,
+                customer_name: customerName,
                 client_ip: clientIP,
                 timestamp: new Date().toISOString(),
             },
@@ -165,10 +202,14 @@ module.exports = async (req, res) => {
         });
 
         console.log('✅ PaymentIntent created:', paymentIntent.id);
+        if (customer) {
+            console.log('✅ PaymentIntent linked to customer:', customer.id);
+        }
 
         return res.status(200).json({
             clientSecret: paymentIntent.client_secret,
             id: paymentIntent.id,
+            customerId: customer ? customer.id : null,
         });
 
     } catch (error) {

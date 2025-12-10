@@ -348,6 +348,7 @@ async function handleCardPayment() {
             },
             body: JSON.stringify({
                 email: email,
+                name: name,
                 amount: 49800, // ¥49,800
                 currency: 'jpy',
             }),

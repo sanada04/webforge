@@ -5,6 +5,7 @@ yarn.lock
 STRIPE_SETUP.md
 VERCEL_SETUP.md
 VERCEL_NEW_PROJECT.md
+STRIPE_CUSTOMER_GUIDE.md
 
 # Environment variables
 .env
